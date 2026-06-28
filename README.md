@@ -1,6 +1,6 @@
 # Order Payment API
 
-A production-ready, extensible Order and Payment Management API built with Laravel 10+ following SOLID principles, Domain-Driven Design, and PSR-12 standards with 100% clean code architecture.
+A production-ready, extensible Order and Payment Management API built with Laravel 10+ following SOLID principles, Domain-Driven Design, and PSR-12 standards with Clean and extensible Laravel API following SOLID principles and modular architecture
 
 ## 📋 Table of Contents
 
