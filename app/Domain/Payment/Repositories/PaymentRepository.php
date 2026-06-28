@@ -18,9 +18,28 @@ class PaymentRepository extends BaseRepository
         return $this->model->newQuery()->with('order')->latest()->paginate(15);
     }
 
+    public function paginateForUser(int $userId): LengthAwarePaginator
+    {
+        return $this->model->newQuery()
+            ->whereHas('order', fn($query) => $query->where('user_id', $userId))
+            ->with('order')
+            ->latest()
+            ->paginate(15);
+    }
+
     public function forOrder(int $orderId)
     {
         return $this->model->newQuery()->where('order_id', $orderId)->with('order')->latest()->paginate(15);
+    }
+
+    public function forOrderOwnedBy(int $orderId, int $userId)
+    {
+        return $this->model->newQuery()
+            ->where('order_id', $orderId)
+            ->whereHas('order', fn($query) => $query->where('user_id', $userId))
+            ->with('order')
+            ->latest()
+            ->paginate(15);
     }
 
     public function createFromArray(array $data): Payment

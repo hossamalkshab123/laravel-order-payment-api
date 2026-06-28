@@ -4,15 +4,19 @@ namespace App\Domain\Order\Services;
 
 use App\Core\Base\BaseService;
 use App\Core\Exceptions\OrderException;
+use App\Core\Traits\HasPermissions;
 use App\Domain\Order\DTOs\OrderDTO;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Repositories\OrderRepository;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OrderService extends BaseService
 {
+    use HasPermissions;
     public function __construct(protected OrderRepository $repository) {}
 
     public function createOrder(OrderDTO $dto): Order
@@ -108,7 +112,20 @@ class OrderService extends BaseService
 
     public function findOrder(int $id): Order
     {
-        return $this->repository->getModel()->newQuery()->with(['items', 'payments'])->findOrFail($id);
+        $order = $this->repository->getModel()->newQuery()->with(['items', 'payments'])->findOrFail($id);
+
+        $this->authorizeOrderAccess($order);
+
+        return $order;
+    }
+
+    private function authorizeOrderAccess(Order $order): void
+    {
+        $user = Auth::user();
+
+        if (! $user || ! $this->canAccessResource($order, $user)) {
+            throw new AuthorizationException('Unauthorized action. ليس لديك صلاحية للوصول.');
+        }
     }
 
     public function listOrders(array $filters = []): LengthAwarePaginator

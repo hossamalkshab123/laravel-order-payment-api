@@ -291,7 +291,7 @@ use App\Contracts\PaymentGatewayInterface;
 
 class StripeGateway implements PaymentGatewayInterface
 {
-    public function process(float $amount, string $currency, array $data): array
+    public function process(array $payload): array
     {
         // Implement Stripe payment processing
         return [

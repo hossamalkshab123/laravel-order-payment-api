@@ -213,4 +213,57 @@ class OrderPaymentApiTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    public function test_customer_cannot_access_another_users_order(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+
+        $order = Order::create([
+            'user_id' => $owner->id,
+            'customer_name' => 'Alan Turing',
+            'email' => 'alan@example.com',
+            'currency' => 'USD',
+            'status' => OrderStatus::CONFIRMED->value,
+            'total' => 30.00,
+        ]);
+
+        $response = $this->actingAs($other, 'api')->getJson('/api/orders/' . $order->id);
+
+        $response->assertStatus(403)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Unauthorized action. ليس لديك صلاحية للوصول.',
+                'errors' => null,
+            ]);
+    }
+
+    public function test_customer_cannot_process_payment_for_another_users_order(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+
+        $order = Order::create([
+            'user_id' => $owner->id,
+            'customer_name' => 'Ada Lovelace',
+            'email' => 'ada@example.com',
+            'currency' => 'USD',
+            'status' => OrderStatus::CONFIRMED->value,
+            'total' => 50.00,
+        ]);
+
+        $response = $this->actingAs($other, 'api')->postJson('/api/payments/process', [
+            'order_id' => $order->id,
+            'amount' => 50.00,
+            'currency' => 'USD',
+            'payment_method' => 'credit_card',
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Unauthorized action. ليس لديك صلاحية للوصول.',
+                'errors' => null,
+            ]);
+    }
 }
